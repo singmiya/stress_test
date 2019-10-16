@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.6
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # 2/10/16 base trans. wrote by srcdog on 20th, April, 2009
 # ld elements in base 2, 10, 16.
