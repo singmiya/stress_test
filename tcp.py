@@ -5,6 +5,8 @@ import socket
 import threading
 import time
 
+import sys
+
 from tranrequest import TranRequest
 
 DATEFMT = "%H:%M:%S"
@@ -38,10 +40,11 @@ TOKEN = '39c44a7891224ae08823ce29b219ad8a'
 
 
 class TCPThread(threading.Thread):
-    def __init__(self, thread_name):
+    def __init__(self, thread_name, per_times):
         threading.Thread.__init__(self)
         self.test_count = 0
         self.name = thread_name
+        self.per_times = per_times
 
     def run(self):
         """
@@ -60,31 +63,32 @@ class TCPThread(threading.Thread):
         global FAIL
         global EXCEPT
 
-        tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            st = time.time()
-            tcp_client.connect((HOST, PORT))
-            tcp_client.send(create_query_acc_balance())
-            reply = tcp_client.recv(1024)
+        for _ in range(self.per_times):
+            tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                st = time.time()
+                tcp_client.connect((HOST, PORT))
+                tcp_client.send(create_query_acc_balance())
+                reply = tcp_client.recv(1024)
 
-            if reply:
-                SUCC += 1
-                # logging.info('tcp reply {}'.format(reply))
-            else:
-                FAIL += 1
-                # logging.info('tcp reply error')
+                if reply:
+                    SUCC += 1
+                    # logging.info('tcp reply {}'.format(reply))
+                else:
+                    FAIL += 1
+                    # logging.info('tcp reply error')
 
-            time_span = time.time() - st
-            self.max_time(time_span)
-            self.min_time(time_span)
+                time_span = time.time() - st
+                self.max_time(time_span)
+                self.min_time(time_span)
 
-            self.count_section(time_span)
-        except socket.error as e:
-            logging.info('{} >>> {}'.format('socket error', e))
-            EXCEPT += 1
+                self.count_section(time_span)
+            except socket.error as e:
+                logging.info('{} >>> {}'.format('socket error', e))
+                EXCEPT += 1
 
-        TOTAL += 1
-        tcp_client.close()
+            TOTAL += 1
+            tcp_client.close()
 
     def max_time(self, ts):
         global MAX_TIME
@@ -127,8 +131,6 @@ class TCPThread(threading.Thread):
             SECTION0_1 += 1
 
 
-
-
 def create_query_acc_balance():
     """
     构造获取账户余额请求
@@ -150,19 +152,25 @@ def create_sync_params():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        logging.info('usage: tcp.py 并发数 每个线程请求次数')
+        logging.info('example: tcp.py 500 10')
+        exit(0)
+    logging.info('并发数:{} 每个线程请求次数:{}'.format(sys.argv[1], sys.argv[2]))
     logging.info('{}'.format('=============== Start ==============='))
     # 开始时间
     start_time = time.time()
     # 并发线程数
-    thread_count = 10000
+    thread_count = int(sys.argv[1])
+    per_times = int(sys.argv[2])
     i = 0
     while i < thread_count:
-        t = TCPThread('thread' + str(i))
+        t = TCPThread('thread' + str(i), per_times)
         t.start()
         i += 1
     t = 0
 
-    while TOTAL < thread_count and t < 60:
+    while TOTAL < thread_count * per_times and t < 60:
         # logging.info('total:{}; succ:{}; fail:{}; except:{}'.format(TOTAL, SUCC, FAIL, EXCEPT))
         # logging.info('HOST:{}; PORT:{}'.format(HOST, PORT))
         t += 1
