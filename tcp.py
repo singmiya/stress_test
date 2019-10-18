@@ -65,7 +65,7 @@ class TCPThread(threading.Thread):
 
         for _ in range(self.per_times):
             tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            tcp_client.settimeout(36)
+            tcp_client.settimeout(60)
             try:
                 st = time.time()
                 tcp_client.connect((HOST, PORT))
