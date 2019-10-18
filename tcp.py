@@ -21,7 +21,7 @@ SUCC = 0  # 响应成功数
 FAIL = 0  # 响应失败数
 EXCEPT = 0  # 响应异常数
 MAX_TIME = 0  # 最大响应时间
-MIN_TIME = 100  # 最小响应事件，初始值为100秒
+MIN_TIME = 0.1  # 最小响应事件，初始值为100ms
 
 SECTION8_ = 0
 SECTION7_8 = 0
@@ -65,6 +65,7 @@ class TCPThread(threading.Thread):
 
         for _ in range(self.per_times):
             tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tcp_client.settimeout(36)
             try:
                 st = time.time()
                 tcp_client.connect((HOST, PORT))
