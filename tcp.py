@@ -69,7 +69,7 @@ class TCPThread(threading.Thread):
             try:
                 st = time.time()
                 tcp_client.connect((HOST, PORT))
-                tcp_client.send(create_query_acc_balance())
+                tcp_client.send(create_authcode())
                 reply = tcp_client.recv(1024)
 
                 if reply:
@@ -151,6 +151,18 @@ def create_sync_params():
     request.begin_new_tran('sync_params')
     return request.pack()
 
+def create_authcode():
+    """
+    构造同步参数请求
+    :return:
+    """
+    request = TranRequest(TERMINAL_NO, TOKEN)
+    request.begin_new_tran('authcode')
+    request.put("payItemNo", "1800506")
+    request.put("payKey", "1b5cfcb2c28e4115bd3a60b9befc4966")
+    request.put("tran_amt", "0.01")
+    request.put("auth_code", "nIC://1000000294|1800506|2106580433")
+    return request.pack()
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
